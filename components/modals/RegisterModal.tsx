@@ -3,10 +3,11 @@ import { useCallback, useState } from 'react';
 import Input from '../Input';
 import Modal from '../Modal';
 import useRegisterModal from '@/hooks/useRegisterModals';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import { signIn } from 'next-auth/react';
 
-interface LoginModalProps {}
-
-const RegisterModal: React.FC<LoginModalProps> = () => {
+const RegisterModal = () => {
   const loginModal = useLoginModal();
   const registerModal = useRegisterModal();
 
@@ -29,13 +30,30 @@ const RegisterModal: React.FC<LoginModalProps> = () => {
     try {
       setIsLoading(true);
 
+      await axios.post('/api/register', {
+        email,
+        password,
+        username,
+        name,
+      });
+
+      setIsLoading(false); //ここでloadingをfalseにしとかないとエラーになる
+
+      toast.success('Account created');
+
+      signIn('credentials', {
+        email,
+        password,
+      });
+
       registerModal.onClose();
     } catch (error) {
       console.log(error);
+      toast.error('Something went wrong');
     } finally {
       setIsLoading(false);
     }
-  }, [registerModal]);
+  }, [email, password, registerModal, username, name]); //ここでセットすることによりデータベースに保存される
 
   const bodyContent = (
     <div className='flex flex-col gap-4'>
